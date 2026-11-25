@@ -1,0 +1,1 @@
+{"dependencies":{"werift":"0.20.1","ws":"^8.18.0"},"description":"Headless WebRTC test client for the voip-lab Docker NAT lab (runs inside a container, where UDP works)","license":"MIT","name":"voip-lab-client","private":true,"type":"module","version":"1.0.0"}

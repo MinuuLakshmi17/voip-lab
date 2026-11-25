@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>voip-lab — WebRTC call</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>voip-lab</h1>
+      <p>WebRTC audio/video calls over the voip-lab signaling server, with STUN/TURN from coturn.</p>
+    </header>
+
+    <main>
+      <section class="panel" id="join-panel">
+        <h2>Join a room</h2>
+        <label>
+          Room
+          <input id="input-room" type="text" placeholder="e.g. demo-room" autocomplete="off" />
+        </label>
+        <label>
+          Display name
+          <input id="input-name" type="text" placeholder="e.g. alice" autocomplete="off" />
+        </label>
+        <label class="checkbox">
+          <input id="input-test-tone" type="checkbox" checked />
+          Use test tone (no camera or microphone)
+        </label>
+        <div class="buttons">
+          <button id="btn-join" type="button">Join room</button>
+          <button id="btn-hangup" type="button" disabled>Hang up</button>
+          <button id="btn-mute-audio" type="button" disabled>Mute audio</button>
+          <button id="btn-mute-video" type="button" disabled>Mute video</button>
+        </div>
+      </section>
+
+      <section class="panel" id="status-panel">
+        <h2>Connection</h2>
+        <dl>
+          <dt>Signaling</dt>
+          <dd id="status-signaling">disconnected</dd>
+          <dt>Call state</dt>
+          <dd id="status-call">idle</dd>
+          <dt>ICE connection</dt>
+          <dd id="status-ice">—</dd>
+          <dt>Peer connection</dt>
+          <dd id="status-connection">—</dd>
+        </dl>
+      </section>
+
+      <section class="panel" id="stats-panel">
+        <h2>Call stats</h2>
+        <dl>
+          <dt>Round-trip time</dt>
+          <dd id="stat-rtt">—</dd>
+          <dt>Jitter (inbound audio)</dt>
+          <dd id="stat-jitter">—</dd>
+          <dt>Packets lost</dt>
+          <dd id="stat-lost">—</dd>
+          <dt>Packets received</dt>
+          <dd id="stat-received">—</dd>
+          <dt>Packets sent</dt>
+          <dd id="stat-sent">—</dd>
+          <dt>Candidate pair (local/remote)</dt>
+          <dd id="stat-pair">—</dd>
+        </dl>
+        <p class="hint">
+          Candidate pair types: <code>host</code> is a direct local address,
+          <code>srflx</code> is the public address learned from STUN,
+          <code>relay</code> means media is flowing through TURN.
+        </p>
+      </section>
+
+      <section class="panel videos">
+        <div>
+          <h2>Local</h2>
+          <video id="local-video" autoplay muted playsinline></video>
+        </div>
+        <div>
+          <h2>Remote</h2>
+          <video id="remote-video" autoplay playsinline></video>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Log</h2>
+        <pre id="log"></pre>
+      </section>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

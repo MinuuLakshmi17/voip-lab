@@ -1,0 +1,93 @@
+# NAT/firewall test lab for voip-lab.
+#
+# Topology (the point of the exercise):
+#   - signaling and coturn sit on every network, so both clients can
+#     reach them.
+#   - client-a lives ONLY on net-a, client-b ONLY on net-b. The two
+#     client networks have no route between them, so there is no direct
+#     path between the peers: host and srflx candidates cannot connect,
+#     and the call can only succeed through the TURN relay.
+#   - Each client container is also behind Docker's own NAT, so each
+#     peer's host candidate is a private container address.
+#
+# Run:  ./scripts/nat-test.sh
+# The script brings the stack up, runs both clients, prints the
+# candidate-type matrix, and tears the stack down.
+#
+# Provided, not verified in this sandbox: there is no Docker daemon
+# here, so this file has not been run. See README.md, Limitations.
+
+services:
+  signaling:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    environment:
+      PORT: "3000"
+      TURN_SECRET: ${TURN_SECRET:-dev-secret-change-me}
+      TURN_HOST: coturn
+    networks:
+      - lab-net
+      - net-a
+      - net-b
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  coturn:
+    image: coturn/coturn:4.6.2
+    command:
+      - "-c"
+      - "/etc/coturn/turnserver.conf"
+      - "--static-auth-secret=${TURN_SECRET:-dev-secret-change-me}"
+    volumes:
+      - ../turn/turnserver.conf:/etc/coturn/turnserver.conf:ro
+    networks:
+      - lab-net
+      - net-a
+      - net-b
+    ports:
+      - "3478:3478/udp"
+      - "3478:3478/tcp"
+      - "5349:5349/tcp"
+
+  # The two test clients. They run once, print a JSON report, and exit.
+  # They are started by scripts/nat-test.sh with `docker compose run`.
+  client-a:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SIGNALING_URL: ws://signaling:3000/ws
+      ICE_CONFIG_URL: http://signaling:3000/ice-config
+      ROOM: lab-room
+      PEER_ID: lab-a
+      ROLE: caller
+    networks:
+      - net-a
+    profiles:
+      - lab
+
+  client-b:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SIGNALING_URL: ws://signaling:3000/ws
+      ICE_CONFIG_URL: http://signaling:3000/ice-config
+      ROOM: lab-room
+      PEER_ID: lab-b
+      ROLE: callee
+    networks:
+      - net-b
+    profiles:
+      - lab
+
+networks:
+  lab-net:
+  net-a:
+  net-b:
